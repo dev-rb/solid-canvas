@@ -3,7 +3,7 @@ import {
   resolveTokens,
   TokenElement,
 } from '@solid-primitives/jsx-tokenizer'
-import { Accessor, JSX, mergeProps } from 'solid-js'
+import { Accessor, createSignal, JSX, mergeProps } from 'solid-js'
 import {
   InternalContext,
   useInternalContext,
@@ -15,10 +15,8 @@ import { isPointInShape2D } from 'src/utils/isPointInShape2D'
 import { resolveExtendedColor } from 'src/utils/resolveColor'
 import forEachReversed from 'src/utils/forEachReversed'
 import withContext from 'src/utils/withContext'
-import { Controller } from 'src/controllers/types'
 import { Controllers } from 'src/controllers/types'
 import { useControllers } from 'src/controllers/useControllers'
-import { Draggable } from 'src/controllers/Draggable'
 
 /**
  * Groups (and clips) the component's children
@@ -40,16 +38,24 @@ export type GroupProps = {
 const Group = createToken(parser, (props: GroupProps) => {
   const canvas = useInternalContext()
   if (!canvas) throw 'CanvasTokens need to be included in Canvas'
-  const resolvedControllers = useControllers(props.controllers)
+  const _resolvedControllers = useControllers(() => props.controllers)
+  let resolvedControllers: Array<
+    ReturnType<ReturnType<typeof _resolvedControllers>[number]>
+  > = []
+  for (const controller of _resolvedControllers()) {
+    resolvedControllers.push(controller({ canvas }, 'key'))
+  }
   const merged = mergeProps({ position: { x: 0, y: 0 } }, props)
 
+  const [offset, setOffset] = createSignal({ x: 0, y: 0 }, { equals: false })
   const context = {
     ...canvas,
     get origin() {
+      // console.log(offset())
       return canvas
         ? {
-            x: merged.position.x + canvas.origin.x,
-            y: merged.position.y + canvas.origin.y,
+            x: merged.position.x + canvas.origin.x + offset().x,
+            y: merged.position.y + canvas.origin.y + offset().y,
           }
         : merged.position
     },
@@ -131,6 +137,16 @@ const Group = createToken(parser, (props: GroupProps) => {
         }
       }
     })
+
+    if (result.length === 1 && result[0] === tokens()[tokens().length - 1]) {
+      for (const controller of resolvedControllers) {
+        const called = controller
+        if ('onMouseDown' in called) {
+          called.onMouseDown(event)
+          setOffset(called.dragPosition())
+        }
+      }
+    }
     return false
   }
 

@@ -16,10 +16,16 @@ export interface DraggableProps {
 }
 
 export const Draggable = (options: DraggableOptions) => {
-  options = mergeProps({ type: 'drag', startPosition: { x: 0, y: 0 } }, options)
-  return (props: DraggableProps, _internal: 'key') => {
+  options = mergeProps(
+    { type: 'drag', startPosition: { x: 0, y: 0 }, canDrag: true },
+    options,
+  )
+  return (props: DraggableProps) => {
     const [dragging, setDragging] = createSignal(false)
-    const [dragPosition, setDragPosition] = createSignal({ x: 0, y: 0 })
+    const [dragPosition, setDragPosition] = createSignal(
+      { x: 0, y: 0 },
+      { equals: false },
+    )
     createEffect(() => {
       if (!props.canvas) return
       if (dragging()) {
@@ -55,7 +61,7 @@ export const Draggable = (options: DraggableOptions) => {
     }
     return {
       type: options.type,
-      dragEventHandler,
+      onMouseDown: dragEventHandler,
       dragPosition,
     }
   }
