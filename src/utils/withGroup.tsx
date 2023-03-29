@@ -11,8 +11,6 @@ function withGroup<T extends Shape2DProps, U extends unknown>(
       'children',
       'clip',
       'position',
-      'draggable',
-      'onDragMove',
     ])
     return (
       <Group {...groupProps}>

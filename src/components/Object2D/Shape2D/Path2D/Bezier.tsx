@@ -13,7 +13,7 @@ import { useInternalContext } from 'src/context/InternalContext'
 
 import { defaultBoundsProps, defaultShape2DProps } from 'src/defaultProps'
 import { parser, Shape2DToken } from 'src/parser'
-import { BezierPoint, Position, Shape2DProps } from 'src/types'
+import { Position, Shape2DProps } from 'src/types'
 import addPositions from 'src/utils/addPositions'
 import hitTest from 'src/utils/hitTest'
 import invertPosition from 'src/utils/invertPosition'
